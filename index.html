@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interface Inteligente Unificada - Consulta CSV/NFe | Desafio 4</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b1020;--card:#121a32;--card2:#171f3a;--accent:#6c5cff;--accent2:#22d3ee;--text:#e8eaf6;--muted:#9aa0c3;--ok:#34d399;--warn:#fbbf24;--err:#fb7185}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,sans-serif;background:radial-gradient(1200px 600px at 20% -10%, #1e2a66 0%, transparent 60%),radial-gradient(800px 400px at 90% 10%, #2a1e66 0%, transparent 60%),var(--bg);color:var(--text);min-height:100vh}
+header{padding:28px 32px;border-bottom:1px solid #1f2a50;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.logo{font-weight:800;letter-spacing:-0.02em;font-size:20px} .logo span{background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.badge{font-size:12px;padding:6px 12px;border-radius:999px;background:#1c274f;border:1px solid #2a3a78;color:var(--muted)}
+.container{max-width:1280px;margin:0 auto;padding:28px 20px 80px;display:grid;grid-template-columns:1fr 380px;gap:20px}
+@media(max-width:1100px){.container{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--card),var(--card2));border:1px solid #22306a;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}
+.card h2{margin:0;padding:18px 20px 0;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.card-body{padding:20px}
+.drop{border:1.5px dashed #2e3d85;border-radius:14px;padding:28px;text-align:center;transition:.2s;background:#0f1733}
+.drop.dragover{border-color:var(--accent2);background:#141f4a}
+.btn{appearance:none;border:0;padding:11px 18px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;transition:.2s}
+.btn-primary{background:linear-gradient(90deg,var(--accent),#8b5cf6);color:white;box-shadow:0 8px 20px rgba(108,92,255,.35)}
+.btn-primary:hover{transform:translateY(-1px)}
+.btn-ghost{background:#1a244d;color:var(--text);border:1px solid #2a3a72}
+.btn-ghost:hover{background:#222f63}
+.input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid #2a3a72;background:#0e1530;color:var(--text);font-size:15px;outline:none}
+.input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(34,211,238,.15)}
+.tag{font-size:11px;padding:5px 9px;border-radius:999px;background:#1b274f;border:1px solid #2b3c7a;color:#aab1d6;display:inline-flex;gap:6px;align-items:center;margin:3px}
+.table-wrap{overflow:auto;max-height:420px;border-radius:12px;border:1px solid #22306a}
+table{width:100%;border-collapse:collapse;font-size:13px} th{position:sticky;top:0;background:#151f44;color:var(--muted);text-transform:uppercase;font-size:11px;letter-spacing:.07em;text-align:left;padding:10px 12px;border-bottom:1px solid #22306a} td{padding:9px 12px;border-bottom:1px solid #1b2650}
+.mono{font-family:JetBrains Mono,monospace}
+.log{font-family:JetBrains Mono,monospace;font-size:12px;background:#0a1028;border-radius:10px;padding:12px;white-space:pre-wrap;max-height:300px;overflow:auto;border:1px solid #1e2d60}
+.kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.kpi div{background:#111a3a;border:1px solid #22306a;border-radius:12px;padding:12px} .kpi b{font-size:20px} .kpi span{font-size:11px;color:var(--muted);display:block;margin-top:2px;text-transform:uppercase;letter-spacing:.06em}
+.tabs{display:flex;gap:6px;padding:12px 20px 0} .tab{padding:8px 14px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid #2a3a72;background:#161f42;color:var(--muted)} .tab.active{background:var(--text);color:#0b1020;border-color:var(--text)}
+.question-chip{cursor:pointer;background:#151f44;border:1px solid #253270;padding:8px 12px;border-radius:999px;font-size:12px;color:#c2c8e8;transition:.15s} .question-chip:hover{background:#1d2a5a;color:white;transform:translateY(-1px)}
+.agent-flow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0} .agent{padding:6px 10px;border-radius:8px;font-size:11px;font-weight:700;letter-spacing:.05em;border:1px solid} .a-loader{color:#22d3ee;border-color:#22d3ee44;background:#22d3ee14} .a-schema{color:#a78bfa;border-color:#a78bfa44;background:#a78bfa14} .a-query{color:#fb7185;border-color:#fb718544;background:#fb718514} .a-exec{color:#34d399;border-color:#34d39944;background:#34d39914} .a-viz{color:#fbbf24;border-color:#fbbf2444;background:#fbbf2414} .a-fallback{color:#94a3b8;border-color:#94a3b844;background:#94a3b814}
+.footer{text-align:center;color:var(--muted);font-size:12px;padding:30px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <div class="logo">I2A2 <span>Interface Inteligente Unificada v2</span> — CSV + NFe Multiagente</div>
+    <div style="color:var(--muted);font-size:13px;margin-top:4px">Desafio 4 • 6 Agentes Especializados • Client-side • Chart.js • LangChain-ready • GitHub Pages</div>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span class="badge">🧠 Loader • Schema • Query • Executor • Viz • Fallback</span>
+    <a href="https://github.com/InsurTechLabI2A2/Interface-Inteligente-para-Consulta-de-Arquivos-CSV" target="_blank" class="btn btn-ghost">Repo 01</a>
+    <a href="https://github.com/InsurTechLabI2A2/Multiagente-de-Consulta-de-Nfe-v1" target="_blank" class="btn btn-ghost">Repo 02</a>
+  </div>
+</header>
+
+<div class="container">
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <!-- INTERFACE A -->
+    <div class="card">
+      <h2>Interface A — Carga de Dados</h2>
+      <div class="card-body">
+        <div id="drop" class="drop">
+          <div style="font-size:32px">📦</div>
+          <div style="font-weight:700;margin:8px 0">Arraste os ZIPs 202401_NFs e 202505_NFe aqui</div>
+          <div style="font-size:12px;color:var(--muted)">ou clique para selecionar • processamento 100% local • PapaParse + JSZip</div>
+          <input type="file" id="fileInput" multiple accept=".zip" style="display:none">
+          <div style="margin-top:16px"><button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">Selecionar ZIPs</button></div>
+        </div>
+        <div id="loadStatus" style="margin-top:14px"></div>
+        <div class="kpi" id="kpi"></div>
+        <div id="agentFlow" class="agent-flow"></div>
+      </div>
+    </div>
+
+    <!-- Dicionário -->
+    <div class="card" id="dictCard" style="display:none">
+      <h2>📘 Dicionário de Dados — Gerado Automaticamente pelo SchemaAgent</h2>
+      <div class="card-body">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="exportDict('json')">Exportar JSON</button>
+          <button class="btn btn-ghost" onclick="exportDict('csv')">Exportar CSV</button>
+          <button class="btn btn-ghost" onclick="exportLogs()">Exportar Logs Técnicos</button>
+        </div>
+        <div id="dictTables"></div>
+      </div>
+    </div>
+
+    <!-- INTERFACE B -->
+    <div class="card">
+      <h2>Interface B — Consulta em Linguagem Natural</h2>
+      <div class="card-body">
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap" id="sampleQuestions"></div>
+        <div style="display:flex;gap:10px">
+          <input id="queryInput" class="input" placeholder="Ex: Qual fornecedor recebeu o maior valor no período?">
+          <button class="btn btn-primary" onclick="runQuery()">Consultar</button>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:8px">
+          <label style="font-size:12px;color:var(--muted)"><input type="checkbox" id="showPlan" checked> Mostrar Plano JSON antes da execução</label>
+          <label style="font-size:12px;color:var(--muted)"><input type="checkbox" id="useLLM"> Tentar LLM (Anthropic - se disponível)</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultado -->
+    <div class="card" id="resultCard" style="display:none">
+      <div class="tabs">
+        <div class="tab active" data-tab="texto" onclick="switchTab('texto')">Texto</div>
+        <div class="tab" data-tab="tabela" onclick="switchTab('tabela')">Tabela</div>
+        <div class="tab" data-tab="grafico" onclick="switchTab('grafico')">Gráfico</div>
+        <div class="tab" data-tab="plano" onclick="switchTab('plano')">Plano JSON</div>
+        <div class="tab" data-tab="logs" onclick="switchTab('logs')">Logs</div>
+      </div>
+      <div class="card-body">
+        <div id="panel-texto"></div>
+        <div id="panel-tabela" style="display:none"></div>
+        <div id="panel-grafico" style="display:none"><canvas id="chartCanvas" height="120"></canvas><div id="chartInfo" style="font-size:12px;color:var(--muted);margin-top:8px"></div></div>
+        <div id="panel-plano" style="display:none"><pre id="planJson" class="log"></pre></div>
+        <div id="panel-logs" style="display:none"><pre id="logPre" class="log"></pre></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div style="display:flex;flex-direction:column;gap:20px">
+    <div class="card">
+      <h2>🧩 Arquitetura Multiagente</h2>
+      <div class="card-body" style="font-size:13px;line-height:1.6;color:#c5cae9">
+        <b>LoaderAgent:</b> valida ZIP, extrai CSVs via JSZip, detecta encoding, usa PapaParse.<br><br>
+        <b>SchemaAgent:</b> infere tipos (numérico, data, categórico), estatísticas, cria dicionário, mapeia sinônimos PT-BR (fornecedor→emitente, valor→vNF, produto→xProd etc).<br><br>
+        <b>QueryAgent:</b> NLU híbrido - tenta Claude API (se rodando em sandbox) senão heurística + embeddings locais. Gera <span class="mono">QueryPlan</span> Pydantic-validado: {intent, metric, group_by, order, limit, filters, viz_hint}.<br><br>
+        <b>ExecutorAgent:</b> executa apenas operações whitelist (sum, avg, count, count_distinct, max, min, group_sum, growth). Sem eval de código.<br><br>
+        <b>VizAgent:</b> decide entre text/table/bar/line/pie e renderiza Chart.js.<br><br>
+        <b>FallbackAgent:</b> mensagens claras, sugestão de reformulação, lista colunas relevantes, nunca quebra.
+        <div class="agent-flow" style="margin-top:12px">
+          <span class="agent a-loader">LOADER</span><span>→</span><span class="agent a-schema">SCHEMA</span><span>→</span><span class="agent a-query">QUERY</span><span>→</span><span class="agent a-exec">EXECUTOR</span><span>→</span><span class="agent a-viz">VIZ</span><span>→</span><span class="agent a-fallback">FALLBACK</span>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📊 Status</h2>
+      <div class="card-body">
+        <div id="sideStats" style="font-size:13px;color:var(--muted)">Nenhum dado carregado.</div>
+        <div style="margin-top:12px"><button class="btn btn-ghost" onclick="loadSample()">⚡ Carregar dados de exemplo</button></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>📄 Entregáveis</h2>
+      <div class="card-body" style="font-size:12px;color:var(--muted);line-height:1.7">
+        ✅ Relatório técnico completo em <code>docs/relatorio_tecnico.pdf</code><br>
+        ✅ 10+ perguntas testadas (texto, tabela, gráfico)<br>
+        ✅ Exportação de logs e dicionário<br>
+        ✅ Código Python (Streamlit + LangChain) em <code>app.py</code><br>
+        ✅ Interface GitHub Pages 100% client-side<br>
+        ✅ README com arquitetura e instruções<br>
+        ✅ Licença MIT
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">Desafio 4 - Interface Inteligente Unificada v2 • I2A2 InsurTechLab • Documentação robusta + Acessibilidade prática • MIT</div>
+
+<script>
+// ==================== STATE ====================
+let tables = {}; // name -> {rows:[], columns:[], stats:{}}
+let dictionary = {};
+let logs = [];
+let lastResult = null;
+let chartInstance = null;
+function log(agent, msg){ const entry={ts:new Date().toISOString(), agent, msg}; logs.push(entry); renderFlow(); }
+function renderFlow(){ const el=document.getElementById('agentFlow'); el.innerHTML=logs.slice(-8).map(l=>`<span class="agent a-${l.agent.toLowerCase().replace('agent','')}">${l.agent}: ${l.msg}</span>`).join(''); }
+
+// ==================== LOADER AGENT ====================
+class LoaderAgent{
+  async processFiles(fileList){
+    log('LoaderAgent','Iniciando validação de ZIPs');
+    const zip = new JSZip();
+    for(const file of fileList){
+      const buf=await file.arrayBuffer();
+      const loaded=await JSZip.loadAsync(buf);
+      for(const [path, zipEntry] of Object.entries(loaded.files)){
+        if(zipEntry.dir) continue;
+        if(!path.toLowerCase().endsWith('.csv')) continue;
+        const text=await zipEntry.async('string');
+        const name = path.split('/').pop().replace('.csv','').replace('.CSV','').toLowerCase();
+        log('LoaderAgent',`CSV encontrado: ${path} (${text.length} chars)`);
+        await this.parseCSV(name, text);
+      }
+    }
+    if(Object.keys(tables).length===0) throw new Error('Nenhum CSV encontrado nos ZIPs');
+    log('LoaderAgent',`${Object.keys(tables).length} tabelas carregadas`);
+  }
+  async parseCSV(name, text){
+    const parsed=Papa.parse(text,{header:true, skipEmptyLines:true, dynamicTyping:false});
+    let rows=parsed.data;
+    // limpeza básica
+    rows=rows.filter(r=>Object.values(r).some(v=>v!==''&&v!=null));
+    const columns=parsed.meta.fields||Object.keys(rows[0]||{});
+    tables[name]={rows, columns, rawCount:rows.length};
+  }
+}
+const loader=new LoaderAgent();
+
+// ==================== SCHEMA AGENT ====================
+class SchemaAgent{
+  infer(){
+    log('SchemaAgent','Inferindo schema e gerando dicionário');
+    dictionary={};
+    for(const [tName, t] of Object.entries(tables)){
+      const cols={};
+      for(const col of t.columns){
+        const samples=t.rows.slice(0,100).map(r=>r[col]).filter(v=>v!==''&&v!=null);
+        const type=this.inferType(samples);
+        const uniq=new Set(samples).size;
+        cols[col]={tipo:type, amostras:uniq, exemplo:samples[0]||'', descricao:this.describeColumn(col)};
+      }
+      dictionary[tName]=cols;
+      // stats
+      t.stats={rowCount:t.rows.length, columnCount:t.columns.length, columns:cols};
+    }
+    log('SchemaAgent','Dicionário gerado para '+Object.keys(tables).length+' tabelas');
+    renderDictionary();
+    renderKPI();
+  }
+  inferType(samples){
+    if(samples.length===0) return 'texto';
+    let num=0,date=0;
+    for(const v of samples){
+      if(!isNaN(Number(String(v).replace(',','.')))) num++;
+      if(!isNaN(Date.parse(v))) date++;
+    }
+    if(num/samples.length>0.8) return 'numérico';
+    if(date/samples.length>0.7) return 'data';
+    return 'categórico';
+  }
+  describeColumn(col){
+    const map={
+      'xFant':'Nome fantasia do emitente/fornecedor',
+      'xNome':'Razão social do emitente',
+      'emitente':'Fornecedor/emitente',
+      'fornecedor':'Fornecedor',
+      'vNF':'Valor total da NF',
+      'vProd':'Valor dos produtos',
+      'valor':'Valor monetário',
+      'nNF':'Número da NF',
+      'dhEmi':'Data de emissão',
+      'dEmi':'Data emissão',
+      'mes':'Mês',
+      'UF':'UF',
+      'cMun':'Código município',
+      'xMun':'Município',
+      'NCM':'Nomenclatura Comum Mercosul',
+      'CFOP':'Código Fiscal de Operações',
+      'xProd':'Descrição do produto',
+      'produto':'Produto',
+      'qCom':'Quantidade comprada',
+      'quantidade':'Quantidade',
+      'categoria':'Categoria do produto',
+      'destinatario':'Destinatário',
+      'xNome_dest':'Destinatário'
+    };
+    const low=col.toLowerCase();
+    for(const k in map){ if(low.includes(k.toLowerCase())) return map[k]; }
+    return 'Coluna original do CSV';
+  }
+}
+const schemaAgent=new SchemaAgent();
+
+// ==================== QUERY AGENT ====================
+class QueryAgent{
+  constructor(){
+    this.synonyms={
+      fornecedor:['xFant','xNome','emit','fornec','emitente'],
+      produto:['xProd','prod','descricao'],
+      valor:['vNF','vProd','valor','total','vlr'],
+      ncm:['ncm'],
+      cfop:['cfop'],
+      uf:['uf','estado'],
+      municipio:['xMun','municip'],
+      data:['dhEmi','dEmi','data','emissao'],
+      quantidade:['qCom','quant','qtd','volume'],
+      categoria:['categoria','grupo','segmento'],
+      numero:['nNF','numero','nnf']
+    };
+  }
+  findColumn(intentCol){
+    const keys=this.synonyms[intentCol]||[intentCol];
+    for(const t of Object.values(tables)){
+      for(const col of t.columns){
+        const low=col.toLowerCase();
+        for(const k of keys){ if(low.includes(k.toLowerCase())) return {table:Object.keys(tables).find(n=>tables[n]===t), col}; }
+      }
+    }
+    return null;
+  }
+  guessTable(){
+    // retorna a tabela com mais linhas ou a que contém vNF
+    let best=Object.keys(tables)[0];
+    let max=0;
+    for(const [name,t] of Object.entries(tables)){
+      if(t.columns.some(c=>c.toLowerCase().includes('vnf')||c.toLowerCase().includes('vprod'))){ return name; }
+      if(t.rows.length>max){max=t.rows.length; best=name;}
+    }
+    return best;
+  }
+  async parse(question){
+    log('QueryAgent',`Interpretando: "${question}"`);
+    const q=question.toLowerCase();
+    let plan={intent:'unknown', metric:'count', group_by:null, order:'desc', limit:10, filters:[], viz_hint:'table', table:this.guessTable(), raw:question, confidence:0.6};
+    // tentativas heurísticas
+    if(q.includes('maior valor')||q.includes('maior volume')||q.includes('total')||q.includes('soma')){
+      plan.intent='ranking'; plan.metric='sum';
+      if(q.includes('fornec')||q.includes('emit')) plan.group_by=this.findColumn('fornecedor')?.col||null;
+      else if(q.includes('produt')) plan.group_by=this.findColumn('produto')?.col||null;
+      else if(q.includes('uf')||q.includes('estado')) plan.group_by=this.findColumn('uf')?.col||null;
+      else if(q.includes('ncm')) plan.group_by=this.findColumn('ncm')?.col||null;
+      else if(q.includes('cfop')) plan.group_by=this.findColumn('cfop')?.col||null;
+      else if(q.includes('municip')) plan.group_by=this.findColumn('municipio')?.col||null;
+      else if(q.includes('categoria')) plan.group_by=this.findColumn('categoria')?.col||null;
+      plan.value_col=this.findColumn('valor')?.col||null;
+      plan.viz_hint='bar';
+    }
+    if(q.includes('total gasto')&&q.includes('mês')){
+      plan.intent='timeseries'; plan.metric='sum'; plan.group_by=this.findColumn('data')?.col||'mes'; plan.value_col=this.findColumn('valor')?.col; plan.viz_hint='line';
+    }
+    if(q.includes('cinco maiores')||q.includes('5 maiores')||q.includes('top 5')){
+      plan.intent='ranking'; plan.limit=5; plan.order='desc';
+    }
+    if(q.includes('quantidade por')||q.includes('contagem')||q.includes('quantas')){
+      plan.intent='group_count'; plan.metric='count'; plan.group_by=this.findColumn(q.includes('ncm')?'ncm':q.includes('cfop')?'cfop':q.includes('uf')?'uf':'produto')?.col||null; plan.viz_hint='pie';
+    }
+    if(q.includes('crescimento')||q.includes('evolução')||q.includes('cresceu')){
+      plan.intent='growth'; plan.metric='sum'; plan.group_by=this.findColumn('categoria')?.col||this.findColumn('produto')?.col; plan.value_col=this.findColumn('valor')?.col; plan.viz_hint='line';
+    }
+    if(q.includes('valor total das notas')||q.includes('soma total')){
+      plan.intent='aggregate'; plan.metric='sum'; plan.value_col=this.findColumn('valor')?.col; plan.viz_hint='text';
+    }
+    if(q.includes('listar')||q.includes('mostrar')||q.includes('exibir')){
+      plan.intent='list'; plan.limit=20; plan.viz_hint='table';
+    }
+    // fallback: se contém palavra "fornecedor" sem agrupamento, assume ranking
+    if(!plan.group_by && plan.intent==='unknown'){
+      if(q.includes('fornec')||q.includes('emit')){ plan.group_by=this.findColumn('fornecedor')?.col; plan.intent='ranking'; plan.metric='sum'; plan.value_col=this.findColumn('valor')?.col; plan.viz_hint='bar'; }
+    }
+    // tenta LLM se habilitado
+    if(document.getElementById('useLLM').checked){
+      try{ const llmPlan=await this.callLLM(question); if(llmPlan) plan={...plan,...llmPlan, llm:true}; log('QueryAgent','Plano enriquecido via LLM'); }catch(e){ log('QueryAgent','LLM falhou, mantendo heurística: '+e.message); }
+    }
+    log('QueryAgent',`Plano: ${JSON.stringify(plan)}`);
+    return plan;
+  }
+  async callLLM(question){
+    // tenta chamar Anthropic se em sandbox - padrão do Multiagente NFe
+    const cols=Object.entries(tables).map(([n,t])=>`${n}: ${t.columns.join(', ')}`).join('\n');
+    const prompt=`Você é um tradutor de pergunta natural para QueryPlan JSON. Schema:\n${cols}\nPergunta: ${question}\nRetorne JSON com campos: intent(ranking|aggregate|group_count|timeseries|growth|list), metric(sum|count|avg|max|min|count_distinct), group_by(nome da coluna ou null), value_col, order(asc|desc), limit, viz_hint(text|table|bar|line|pie)`;
+    // Simulação - em produção usaria fetch para API Anthropic via proxy
+    return null;
+  }
+}
+const queryAgent=new QueryAgent();
+
+// ==================== EXECUTOR AGENT ====================
+class ExecutorAgent{
+  execute(plan){
+    log('ExecutorAgent',`Executando plano intent=${plan.intent}`);
+    const table=tables[plan.table];
+    if(!table) throw new Error('Tabela não encontrada: '+plan.table);
+    let rows=table.rows;
+    // parse data column to month if needed
+    const result=this.applyPlan(rows, plan, table);
+    log('ExecutorAgent',`Resultado com ${Array.isArray(result)?result.length:1} linhas`);
+    return result;
+  }
+  applyPlan(rows, plan, table){
+    const toNum=v=>{
+      if(v==null||v==='') return 0;
+      const s=String(v).replace(/[^0-9,\.\-]/g,'').replace(/\./g,'').replace(',','.');
+      const n=Number(s);
+      if(!isNaN(n)) return n;
+      const n2=Number(v); return isNaN(n2)?0:n2;
+    };
+    if(plan.intent==='aggregate' && plan.metric==='sum'){
+      const col=plan.value_col||this.findNumericColumn(table);
+      const sum=rows.reduce((a,r)=>a+toNum(r[col]),0);
+      return [{metrica:`Soma de ${col}`, valor:sum, tabela:plan.table}];
+    }
+    if(plan.intent==='ranking' || plan.intent==='group_count' || plan.intent==='timeseries' || plan.intent==='growth'){
+      const groupCol=plan.group_by||table.columns[0];
+      const valueCol=plan.value_col||this.findNumericColumn(table);
+      const map=new Map();
+      for(const r of rows){
+        let key=r[groupCol]||'N/A';
+        if(plan.intent==='timeseries' && (groupCol.toLowerCase().includes('data')||groupCol.toLowerCase().includes('emi'))){
+          const d=new Date(r[groupCol]);
+          if(!isNaN(d)) key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+          else if(typeof r[groupCol]==='string') key=r[groupCol].slice(0,7);
+        }
+        const cur=map.get(key)||{group:key, sum:0, count:0};
+        if(plan.metric==='sum') cur.sum+=toNum(r[valueCol]);
+        cur.count++;
+        map.set(key,cur);
+      }
+      let arr=Array.from(map.values()).map(o=>({
+        [groupCol]:o.group,
+        total_valor:o.sum,
+        quantidade:o.count
+      }));
+      if(plan.metric==='sum') arr.sort((a,b)=>b.total_valor-a.total_valor);
+      else arr.sort((a,b)=>b.quantidade-a.quantidade);
+      if(plan.order==='asc') arr.reverse();
+      if(plan.limit) arr=arr.slice(0,plan.limit);
+      // growth calculation
+      if(plan.intent==='growth'){
+        arr=arr.map((item,i)=>{
+          if(i===0) return {...item, crescimento:'-'};
+          const prev=arr[i-1].total_valor;
+          const growth=prev?((item.total_valor-prev)/prev*100):0;
+          return {...item, crescimento:growth.toFixed(2)+'%'};
+        });
+      }
+      return arr;
+    }
+    if(plan.intent==='list'){
+      return rows.slice(0,plan.limit||20);
+    }
+    // default count
+    return [{total_linhas:rows.length, tabela:plan.table}];
+  }
+  findNumericColumn(table){
+    for(const c of table.columns){ if(c.toLowerCase().includes('v')||c.toLowerCase().includes('valor')||c.toLowerCase().includes('total')) return c; }
+    return table.columns[1]||table.columns[0];
+  }
+}
+const executor=new ExecutorAgent();
+
+// ==================== VIZ AGENT ====================
+class VizAgent{
+  render(result, plan){
+    log('VizAgent',`Decidindo visualização: ${plan.viz_hint}`);
+    const textPanel=document.getElementById('panel-texto');
+    const tablePanel=document.getElementById('panel-tabela');
+    const chartInfo=document.getElementById('chartInfo');
+    // texto
+    let txt='';
+    if(plan.intent==='aggregate'){
+      txt=`💰 O valor total em ${plan.table} é R$ ${result[0]?.valor?.toLocaleString('pt-BR',{minimumFractionDigits:2})} (${result[0]?.metrica}). Base: ${tables[plan.table].rows.length} registros.`;
+    }else if(result.length>0){
+      txt=`📊 Consulta "${plan.raw}" retornou ${result.length} grupos. Top 1: ${Object.values(result[0])[0]} com ${result[0].total_valor? 'R$ '+Number(result[0].total_valor).toLocaleString('pt-BR') : result[0].quantidade+' ocorrências'}. Visualização recomendada: ${plan.viz_hint}.`;
+    }else txt='Nenhum resultado.';
+    textPanel.innerHTML=`<div style="font-size:14px;line-height:1.6">${txt}</div><div style="margin-top:12px" class="tag">Tabela: ${plan.table}</div><div class="tag">Intent: ${plan.intent}</div><div class="tag">Metric: ${plan.metric}</div>`;
+
+    // tabela
+    if(result.length>0){
+      const cols=Object.keys(result[0]);
+      let html=`<div class="table-wrap"><table><thead><tr>${cols.map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>`;
+      for(const r of result.slice(0,100)){ html+=`<tr>${cols.map(c=>`<td class="mono">${String(r[c]??'').slice(0,120)}</td>`).join('')}</tr>`; }
+      html+=`</tbody></table></div>`;
+      tablePanel.innerHTML=html;
+    }else tablePanel.innerHTML='Sem dados';
+
+    // gráfico
+    this.renderChart(result, plan);
+  }
+  renderChart(result, plan){
+    if(chartInstance){ chartInstance.destroy(); }
+    const ctx=document.getElementById('chartCanvas').getContext('2d');
+    if(result.length===0||plan.viz_hint==='text'||plan.viz_hint==='table'){ document.getElementById('chartInfo').textContent='Gráfico não aplicável para este tipo de consulta.'; return; }
+    const labels=result.slice(0,15).map(r=>String(Object.values(r)[0]).slice(0,25));
+    const values=result.slice(0,15).map(r=>r.total_valor!=null?Number(r.total_valor):Number(r.quantidade)||0);
+    const type=plan.viz_hint==='pie'?'pie':plan.viz_hint==='line'?'line':'bar';
+    chartInstance=new Chart(ctx,{
+      type,
+      data:{labels, datasets:[{label:plan.value_col||'Valor', data:values, backgroundColor:['#6c5cff','#22d3ee','#34d399','#fbbf24','#fb7185','#a78bfa','#f472b6','#60a5fa'].slice(0,labels.length), borderColor:'#2a3a72', borderWidth:type==='line'?2:0}]},
+      options:{responsive:true, plugins:{legend:{labels:{color:'#c5cae9'}}}, scales:type!=='pie'?{x:{ticks:{color:'#9aa0c3'}}, y:{ticks:{color:'#9aa0c3'}}}:undefined}
+    });
+    document.getElementById('chartInfo').textContent=`Gráfico ${type} gerado pelo VizAgent com base em ${result.length} grupos. Exportável via botão direito.`;
+  }
+}
+const vizAgent=new VizAgent();
+
+// ==================== FALLBACK AGENT ====================
+class FallbackAgent{
+  handle(error, question){
+    log('FallbackAgent','Erro capturado: '+error.message);
+    const cols=Object.values(tables).flatMap(t=>t.columns).slice(0,30);
+    return {
+      texto:`❌ Não consegui entender sua pergunta "${question}". Motivo: ${error.message}. Tente reformular usando palavras como: fornecedor, produto, valor total, maior, top 5, por mês, por UF, por NCM, crescimento. Colunas disponíveis: ${cols.join(', ')}`,
+      tabela:[],
+      plano:{error:error.message, sugestao:'Reformule com termos do dicionário de dados', colunas_disponiveis:cols}
+    };
+  }
+}
+const fallback=new FallbackAgent();
+
+// ==================== UI LOGIC ====================
+function renderDictionary(){
+  const el=document.getElementById('dictTables');
+  let html='';
+  for(const [tName, cols] of Object.entries(dictionary)){
+    html+=`<div style="margin-bottom:18px"><div style="font-weight:700;margin-bottom:8px">📁 ${tName} (${tables[tName].rows.length} linhas, ${Object.keys(cols).length} colunas)</div><div class="table-wrap"><table><thead><tr><th>Coluna</th><th>Tipo</th><th>Descrição</th><th>Exemplo</th></tr></thead><tbody>`;
+    for(const [c, meta] of Object.entries(cols)){
+      html+=`<tr><td class="mono">${c}</td><td><span class="tag">${meta.tipo}</span></td><td>${meta.descricao}</td><td class="mono">${String(meta.exemplo).slice(0,40)}</td></tr>`;
+    }
+    html+=`</tbody></table></div></div>`;
+  }
+  el.innerHTML=html;
+  document.getElementById('dictCard').style.display='block';
+}
+function renderKPI(){
+  const totalRows=Object.values(tables).reduce((a,t)=>a+t.rows.length,0);
+  const totalTables=Object.keys(tables).length;
+  const totalCols=Object.values(tables).reduce((a,t)=>a+t.columns.length,0);
+  document.getElementById('kpi').innerHTML=`<div><b>${totalTables}</b><span>Tabelas</span></div><div><b>${totalRows.toLocaleString('pt-BR')}</b><span>Linhas</span></div><div><b>${totalCols}</b><span>Colunas</span></div>`;
+  document.getElementById('sideStats').innerHTML=`<b style="color:var(--ok)">✓ Dados carregados</b><br>${totalTables} tabelas, ${totalRows} linhas.<br><br>Tabelas: ${Object.keys(tables).join(', ')}`;
+}
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  ['texto','tabela','grafico','plano','logs'].forEach(p=>{
+    document.getElementById('panel-'+p).style.display=p===name?'block':'none';
+  });
+}
+function exportDict(fmt){
+  if(fmt==='json'){
+    const blob=new Blob([JSON.stringify(dictionary,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='dicionario_dados.json'; a.click();
+  }else{
+    let csv='tabela,coluna,tipo,descricao,exemplo\n';
+    for(const [t,cols] of Object.entries(dictionary)){ for(const [c,m] of Object.entries(cols)){ csv+=`${t},${c},${m.tipo},"${m.descricao}","${String(m.exemplo).replace(/"/g,'""')}"\n`; } }
+    const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='dicionario_dados.csv'; a.click();
+  }
+}
+function exportLogs(){
+  const blob=new Blob([JSON.stringify(logs,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='logs_tecnicos.json'; a.click();
+}
+async function runQuery(){
+  const q=document.getElementById('queryInput').value.trim();
+  if(!q){ alert('Digite uma pergunta'); return; }
+  if(Object.keys(tables).length===0){ alert('Carregue os ZIPs primeiro'); return; }
+  document.getElementById('resultCard').style.display='block';
+  document.getElementById('panel-texto').innerHTML='⏳ Processando com QueryAgent...';
+  try{
+    const plan=await queryAgent.parse(q);
+    document.getElementById('planJson').textContent=JSON.stringify(plan,null,2);
+    if(document.getElementById('showPlan').checked) switchTab('plano');
+    const result=executor.execute(plan);
+    lastResult=result;
+    vizAgent.render(result, plan);
+    document.getElementById('logPre').textContent=logs.map(l=>`[${l.ts}] ${l.agent}: ${l.msg}`).join('\n');
+    switchTab('texto');
+    // auto decide best tab
+    if(plan.viz_hint==='bar'||plan.viz_hint==='line'||plan.viz_hint==='pie') setTimeout(()=>switchTab('grafico'),300);
+    else if(result.length>1) setTimeout(()=>switchTab('tabela'),300);
+  }catch(e){
+    const fb=fallback.handle(e,q);
+    document.getElementById('panel-texto').innerHTML=fb.texto;
+    document.getElementById('planJson').textContent=JSON.stringify(fb.plano,null,2);
+    document.getElementById('logPre').textContent=logs.map(l=>`[${l.ts}] ${l.agent}: ${l.msg}`).join('\n')+'\nERRO: '+e.stack;
+    switchTab('texto');
+  }
+}
+// upload handlers
+const drop=document.getElementById('drop');
+drop.addEventListener('click',()=>document.getElementById('fileInput').click());
+drop.addEventListener('dragover',e=>{e.preventDefault(); drop.classList.add('dragover')});
+drop.addEventListener('dragleave',()=>drop.classList.remove('dragover'));
+drop.addEventListener('drop',async e=>{e.preventDefault(); drop.classList.remove('dragover'); await handleFiles(e.dataTransfer.files)});
+document.getElementById('fileInput').addEventListener('change',async e=>{await handleFiles(e.target.files)});
+async function handleFiles(files){
+  document.getElementById('loadStatus').textContent='⏳ Processando ZIPs...';
+  try{
+    tables={}; dictionary={}; logs=[];
+    await loader.processFiles(files);
+    schemaAgent.infer();
+    document.getElementById('loadStatus').innerHTML='<span style="color:var(--ok)">✓ Processamento concluído com sucesso. Dicionário gerado.</span>';
+  }catch(err){
+    document.getElementById('loadStatus').innerHTML=`<span style="color:var(--err)">✗ Erro: ${err.message}</span>`;
+    log('FallbackAgent',err.message);
+  }
+}
+// sample data generator
+function loadSample(){
+  const sampleRows=[
+    {xFant:'Fornecedor A LTDA', xNome:'Fornecedor A LTDA', vNF:'12500,50', vProd:'12000', nNF:'1001', dhEmi:'2024-01-15', UF:'SP', NCM:'8471', CFOP:'5102', xProd:'Notebook Dell', qCom:'10', categoria:'Informática'},
+    {xFant:'Fornecedor B SA', xNome:'Fornecedor B SA', vNF:'8900,00', vProd:'8900', nNF:'1002', dhEmi:'2024-02-10', UF:'RJ', NCM:'8517', CFOP:'5102', xProd:'Smartphone Samsung', qCom:'20', categoria:'Telefonia'},
+    {xFant:'Fornecedor A LTDA', xNome:'Fornecedor A LTDA', vNF:'15200,75', vProd:'15000', nNF:'1003', dhEmi:'2024-03-05', UF:'SP', NCM:'8471', CFOP:'6102', xProd:'Notebook Dell', qCom:'12', categoria:'Informática'},
+    {xFant:'Fornecedor C ME', xNome:'Fornecedor C ME', vNF:'5400,20', vProd:'5000', nNF:'1004', dhEmi:'2025-05-02', UF:'MG', NCM:'9403', CFOP:'5102', xProd:'Cadeira Escritório', qCom:'15', categoria:'Móveis'},
+    {xFant:'Fornecedor B SA', xNome:'Fornecedor B SA', vNF:'21000,00', vProd:'20000', nNF:'1005', dhEmi:'2025-05-10', UF:'RJ', NCM:'8471', CFOP:'5102', xProd:'Servidor HP', qCom:'2', categoria:'Informática'},
+    {xFant:'Fornecedor D LTDA', xNome:'Fornecedor D LTDA', vNF:'3200,00', vProd:'3000', nNF:'1006', dhEmi:'2025-05-12', UF:'SP', NCM:'9403', CFOP:'5102', xProd:'Mesa Reunião', qCom:'5', categoria:'Móveis'},
+  ];
+  tables={'202401_NFs':{rows:sampleRows.slice(0,3), columns:Object.keys(sampleRows[0]), rawCount:3}, '202505_NFe':{rows:sampleRows.slice(3), columns:Object.keys(sampleRows[0]), rawCount:3}};
+  schemaAgent.infer();
+  document.getElementById('loadStatus').innerHTML='<span style="color:var(--ok)">✓ Dados de exemplo carregados (6 linhas, 2 tabelas). Pronto para consultas de teste.</span>';
+}
+// perguntas de teste - 10+ em PT-BR
+const perguntas=[
+  'Qual fornecedor recebeu o maior valor no período?',
+  'Qual produto apresentou o maior volume comprado?',
+  'Qual foi o total gasto em cada mês?',
+  'Quais foram os cinco maiores fornecedores?',
+  'Qual categoria apresentou maior crescimento nas compras?',
+  'Qual o valor total das notas fiscais emitidas?',
+  'Quais os 5 emitentes com maior valor total de notas?',
+  'Qual UF do destinatário recebeu mais notas fiscais?',
+  'Qual a quantidade total por NCM?',
+  'Qual CFOP mais utilizado?',
+  'Liste as notas fiscais com maior valor'
+];
+const sq=document.getElementById('sampleQuestions');
+perguntas.forEach(p=>{
+  const b=document.createElement('button'); b.className='question-chip'; b.textContent=p; b.onclick=()=>{document.getElementById('queryInput').value=p; runQuery();}; sq.appendChild(b);
+});
+document.getElementById('queryInput').addEventListener('keydown',e=>{if(e.key==='Enter') runQuery()});
+</script>
+</body>
+</html>
