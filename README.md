@@ -3,8 +3,8 @@
 
 Versão final integrada que une os pontos fortes dos dois projetos de aprendizagem do grupo InsurTechLab:
 
-- **01 Interface-Inteligente-para-Consulta-de-Arquivos-CSV**: documentação robusta, 6 agentes bem definidos, LangChain + Pydantic, testes automatizados, Streamlit, exportação de logs e plano JSON.
-- **02 Multiagente-de-Consulta-de-Nfe-v1**: acessibilidade prática via GitHub Pages, 100% client-side (JSZip, PapaParse, Chart.js), dicionário automático, perguntas de teste, sem instalação.
+- **01 Interface-Inteligente-para-Consulta-de-Arquivos-CSV**: documentação robusta, 6 agentes bem definidos, LangChain + Pydantic, testes automatizados, Streamlit, exportação de logs e plano JSON. Em https://github.com/InsurTechLabI2A2/Interface-Inteligente-para-Consulta-de-Arquivos-CSV
+- **02 Multiagente-de-Consulta-de-Nfe-v1**: acessibilidade prática via GitHub Pages, 100% client-side (JSZip, PapaParse, Chart.js), dicionário automático, perguntas de teste, sem instalação. Em https://github.com/InsurTechLabI2A2/Multiagente-de-Consulta-de-Nfe-v1
 
 > **Objetivo**: demonstrar como agentes inteligentes + LLMs + tools transformam dados estruturados em informação automática, permitindo que qualquer usuário consulte CSVs de NFe em linguagem natural.
 
@@ -159,8 +159,8 @@ Todos os gráficos são responsivos e exportáveis.
 ## 📚 Créditos
 
 Baseado nos projetos de aprendizagem I2A2:
-- Interface CSV: relatório técnico detalhado, agentes claros, export logs, plano JSON
-- Multiagente NFe: acessibilidade via GitHub Pages, dicionário automático, perguntas de teste, UX amigável
+- Interface CSV: relatório técnico detalhado, agentes claros, export logs, plano JSON em https://github.com/InsurTechLabI2A2/Interface-Inteligente-para-Consulta-de-Arquivos-CSV
+- Multiagente NFe: acessibilidade via GitHub Pages, dicionário automático, perguntas de teste, UX amigável em https://github.com/InsurTechLabI2A2/Multiagente-de-Consulta-de-Nfe-v1
 
 Versão unificada v2 por Grupo de Estudos I2A2 InsurTechLab 2026
 Licença MIT
