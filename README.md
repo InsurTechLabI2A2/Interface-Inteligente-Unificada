@@ -12,7 +12,7 @@ Link original dos dados: https://drive.google.com/drive/folders/19InGHYOQnTou_N0
 
 ---
 
-## 🌐 Como usar (GitHub Pages - recomendado)
+## 🌐 Como usar 
 
 1. Acesse: **https://insurtechlabi2a2.github.io/Interface-Inteligente-Unificada/** 
    Ou abra localmente `index.html` — não precisa de backend.
