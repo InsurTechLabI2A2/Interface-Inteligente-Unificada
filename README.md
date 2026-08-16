@@ -1,7 +1,7 @@
-# 🧠 Interface Inteligente Unificada v2 — Consulta CSV/NFe
+# Interface Inteligente Unificada v2 — Consulta CSV/NFe
 ### Desafio 4: Interface Inteligente para Consulta de Arquivos CSV
 
-Versão final integrada que une os pontos fortes dos dois projetos de aprendizagem do grupo I2A2:
+Versão final integrada que une os pontos fortes dos dois projetos de aprendizagem do grupo InsurTechLab:
 
 - **01 Interface-Inteligente-para-Consulta-de-Arquivos-CSV**: documentação robusta, 6 agentes bem definidos, LangChain + Pydantic, testes automatizados, Streamlit, exportação de logs e plano JSON.
 - **02 Multiagente-de-Consulta-de-Nfe-v1**: acessibilidade prática via GitHub Pages, 100% client-side (JSZip, PapaParse, Chart.js), dicionário automático, perguntas de teste, sem instalação.
@@ -14,7 +14,7 @@ Link original dos dados: https://drive.google.com/drive/folders/19InGHYOQnTou_N0
 
 ## 🌐 Como usar (GitHub Pages - recomendado)
 
-1. Acesse: **https://insurtechlabi2a2.github.io/Interface-Inteligente-Unificada/** *(após publicar)*
+1. Acesse: **https://insurtechlabi2a2.github.io/Interface-Inteligente-Unificada/** 
    Ou abra localmente `index.html` — não precisa de backend.
 
 2. Arraste os ZIPs `202401_NFs.zip` e `202505_NFe.zip` (ou clique em "Carregar dados de exemplo" para teste rápido).
@@ -37,7 +37,7 @@ Link original dos dados: https://drive.google.com/drive/folders/19InGHYOQnTou_N0
 10. Qual CFOP mais utilizado? → **bar**
 11. Liste as notas fiscais com maior valor → **table**
 
-5. Exporte **Dicionário (JSON/CSV)** e **Logs Técnicos** — recursos avançados do projeto 01.
+5. Exporte **Dicionário (JSON/CSV)** e **Logs Técnicos** 
 
 ---
 
@@ -147,16 +147,6 @@ Todos os gráficos são responsivos e exportáveis.
 
 ---
 
-## 🚀 Publicar no GitHub Pages
-
-1. Crie repo `Interface-Inteligente-Unificada`
-2. Envie todos os arquivos
-3. Settings → Pages → Source: `main` branch, `/` root
-4. Acesse `https://SEU_USER.github.io/Interface-Inteligente-Unificada/`
-5. Teste sem baixar nada!
-
----
-
 ## 🔐 Segurança
 
 - Chaves API ocultas via `.env` (nunca commitadas)
@@ -172,5 +162,5 @@ Baseado nos projetos de aprendizagem I2A2:
 - Interface CSV: relatório técnico detalhado, agentes claros, export logs, plano JSON
 - Multiagente NFe: acessibilidade via GitHub Pages, dicionário automático, perguntas de teste, UX amigável
 
-Versão unificada v2 por Grupo de Estudos I2A2 — 2025/2026
+Versão unificada v2 por Grupo de Estudos I2A2 InsurTechLab 2026
 Licença MIT
