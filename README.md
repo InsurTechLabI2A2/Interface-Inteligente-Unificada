@@ -158,7 +158,7 @@ Todos os gráficos são responsivos e exportáveis.
 
 ## 📚 Créditos
 
-Baseado nos projetos de aprendizagem I2A2:
+Baseado nos projetos de aprendizagem I2A2 do grupo InsurTechLab:
 - Interface CSV: relatório técnico detalhado, agentes claros, export logs, plano JSON em https://github.com/InsurTechLabI2A2/Interface-Inteligente-para-Consulta-de-Arquivos-CSV
 - Multiagente NFe: acessibilidade via GitHub Pages, dicionário automático, perguntas de teste, UX amigável em https://github.com/InsurTechLabI2A2/Multiagente-de-Consulta-de-Nfe-v1
 
