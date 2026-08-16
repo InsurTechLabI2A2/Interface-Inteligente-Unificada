@@ -139,7 +139,9 @@ Todas testadas em `index.html` (client) e `app.py` (Python), com texto + tabela 
 
 ### 11. Conclusão
 
-A solução unificada entrega documentação robusta do projeto 01 + acessibilidade prática do projeto 02. Mantém 6 agentes bem definidos, expande para multiagentes especializados, usa interface amigável online com recursos avançados (plano JSON, logs, dicionário), consolida Chart.js para visualizações, adota FallbackAgent para robustez, e publica código + GitHub Pages + relatório com 11 perguntas em 3 formatos. Atende todos os requisitos mínimos do Desafio 4 e demonstra como agentes inteligentes transformam CSV em informação automática.
+A solução unificada entrega documentação robusta do projeto 01 ( https://github.com/InsurTechLabI2A2/Interface-Inteligente-para-Consulta-de-Arquivos-CSV ) + acessibilidade prática do projeto 02 ( https://github.com/InsurTechLabI2A2/Multiagente-de-Consulta-de-Nfe-v1 ). 
+Mantém 6 agentes bem definidos, expande para multiagentes especializados, usa interface amigável online com recursos avançados (plano JSON, logs, dicionário), consolida Chart.js para visualizações, adota FallbackAgent para robustez, e publica código + GitHub Pages + relatório com 11 perguntas em 3 formatos. 
+Atende todos os requisitos mínimos do Desafio 4 e demonstra como agentes inteligentes transformam CSV em informação automática.
 
 ---
 Licença MIT — I2A2 InsurTechLab 2025/2026
